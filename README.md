@@ -48,7 +48,7 @@ Coordinates are compiled from a range of sources, including:
 -   Ethnologue maps
 -   Manual curation and contributions
 
-These coordinates are indicative and should not be treated as precise representations of language distributions. While Glottolog provides a single coordinate for each languoid, it also lists country codes for each country where that language is spoken. More information about the source material for language data can be found on Glottolog.
+These coordinates are indicative and should not be treated as precise representations of language distributions. While Glottolog provides a single coordinate (a centroid) for each languoid, it also lists country codes for each country where that language is spoken. More information about the source material for language data can be found on Glottolog.
 
 ### Endangerment
 
@@ -62,3 +62,36 @@ Olson, D. M. et al. (2001). *Terrestrial Ecoregions of the World: A New Map of L
 Dinerstein, E. et al. (2017). *An Ecoregion-Based Approach to Protecting Half the Terrestrial Realm*. BioScience, 67(6), 534–545. <https://doi.org/10.1093/biosci/bix014>
 
 Hammarström, H., Forkel, R., Haspelmath, M., & Bank, S. (2026). *Glottolog 5.3*. Leipzig: Max Planck Institute for Evolutionary Anthropology. <https://doi.org/10.5281/zenodo.18840935>
+
+Harmon, D and Loh, J. 2010. The Index of Linguistic Diversity: A new Quantitative Measure of Trends in the Status of the World’s Languages. Language, Documentation & Conservation, Vol.
+4: 97-151 - ILD
+
+## Map Citations
+
+The map component of this repository was inspired by the original ground-breaking collaboration between WWF, Terralingua and UNEP in 2000. We have 
+applied the same logic used in that map using the Glottolog data and the Dineretsin 2017 data to create a digital version of the map focusing on
+language endangerment by ecoregion. 
+
+Please cite the original map as follows with a link to the original:
+
+WWF International, Terralingua, and UNEP, 2000 Indigenous and Traditional Peoples in the World’s Terrestrial Ecoregions. 
+https://terralingua.org/tlshop/maps/indigenous-and-traditional-peoples-in-the-worlds-terrestrial-ecoregions-map/
+
+The map was part of a report by WWF International and TerraLingua that should be cited as follows:
+
+Oviedo, Gonzalo; Maffi, Luisa; Larsen, Peter Bille (2000) Indigenous and traditional peoples of the world and ecoregion conservation: an integrated approach to conserving the world's biological and cultural diversity. WWF International and Terralingua: ISBN 2-88985-247-1
+
+## Convention on Biological Diversity References
+
+The work in this repository is linked to wider work on the Linguistic Diversity Indicator of of the Global Biodiversity Framework
+
+CBD/SBSTTA/26/INF/11 Annex C Linguistic Diversity Indicator Metadata Sheet. Scientific and technical review of the traditional knowledge indicators and their suggested links with the headline, component and complementary indicators of the monitoring framework for the Kunming-Montreal Global Biodiversity Framework* 
+
+Under Decision 16/31 (CBD/COP/DEC/16/31) the Linguistic Diversity Indicator is:
+
+1. A complementary indicator under Goal B - (21.CT.3) Index of Linguistic Diversity
+2. A component indicator of Target 21 - (21.CT.1) Index of Linguistic Diversity
+3. A component indicator of Target 22 - (22.CT.1) Index of Linguistic Diversity
+
+Previous COP Decisions addressing this indicator are found on page 53 of CBD/SBSTTA/26/INF/11 as follows: decision 7/30, decision 8/15, 
+decision 13/28, decision 15/5

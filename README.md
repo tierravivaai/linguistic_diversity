@@ -30,7 +30,7 @@ This repository contains:
 -   **create_language_map_endangerment.py** — Creates a map of language endangerment by terrestrial ecoregion. Outputs `languages_ecoregions_map.png` and `languages_ecoregions_map.pdf`.
 -   **create_endangerment_heatmap.py** — Creates a heatmap of language endangerment by UN sub-region. Outputs `endangerment_heatmap.png` and `endangerment_heatmap.pdf`.
 -   **create_endangerment_heatmap_country.py** — Creates a heatmap of language endangerment at the country level. Outputs `endangerment_heatmap_country.png` and `endangerment_heatmap_country.pdf`.
--   **generate_endangerment_report.py** — Creates a Markdown report on language endangerment. Outputs `endangerment_report.md`.
+-   **generate_endangerment_report.py & generate_endangerment_report_parties_only.py** — Creates a Markdown report on language endangerment. Outputs `endangerment_report.md` or `endangerment_report_parties_only.md`.
 -   **Outputs/** — Contains all outputs from above scripts
 
 

@@ -103,7 +103,7 @@ decision 13/28, decision 15/5
 
 Below is a sample of the INI structure for a single langoid, West Circassian. 
 
-# -*- coding: utf-8 -*-
+```ini
 [core]
 name = West Circassian
 hid = ady
@@ -230,16 +230,6 @@ lexvo =
 	アディゲ語 [ja]
 	阿迪格語 [zh]
 	아디게어 [ko]
-hhbib_lgcode = 
-	Abzakh
-	Adygejtsy
-	Adyghe
-	Circassian
-	Tscherkassen
-	Tscherkessische
-	Tscherkessischen
-glottolog = 
-	Adyghe
 
 [triggers]
 lgcode = 
@@ -272,3 +262,4 @@ status = threatened
 source = UNESCO
 date = 2017-08-19T22:02:46
 comment = Adyge (1064-ady) = Vulnerable
+```

@@ -1,6 +1,6 @@
-# Extracting Language Data from Glottolog
+# Extracting and Visualizing Linguistic Diversity Data
 
-This repository covers the process for extracting language data from Glottolog, including information about language endangerment, and visualising it by mapping the data onto Ecoregions data from Olson et al. (2001) to create a map of language endangerment by ecoregion and a heatmap of language endangerment by UN sub-region.
+This repository covers the process for extracting language data from Glottolog, including information about linguistic diversity, and visualising it by mapping the data onto Ecoregions data from Olson et al. (2001) to create a map of linguistic diversity by ecoregion and a heatmap of linguistic diversity by UN sub-region.
 
 ## Ecoregions2017
 
@@ -27,10 +27,10 @@ This repository contains:
 -   **cbd_parties.csv** - Contains a list of CBD Parties and relevant country codes sourced from https://www.cbd.int/information/parties.shtml This has been expanded to include country codes for all 27 EU member states as of April 2026. This dataset was used to filter `glottolog_data.csv` to produce `cbd_party_languages.csv`.
 -   **filter_cbd_languages.py** - The script used to filter `glottolog_data.csv`, removing all languages not spoken in CBD Party countries and all references to non-CBD Parties. The script outputs `cbd_party_languages.csv`.
 -   **cbd_party_languages.csv** - Contains only languages found in CBD Party countries. Excludes all other country codes from country data. To navigate the data structure, it may be helpful to view a sample INI file, which can be found at the bottom of this page.
--   **create_language_map_endangerment.py** — Creates a map of language endangerment by terrestrial ecoregion. Outputs `languages_ecoregions_map.png` and `languages_ecoregions_map.pdf`.
--   **create_endangerment_heatmap.py** — Creates a heatmap of language endangerment by UN sub-region. Outputs `endangerment_heatmap.png` and `endangerment_heatmap.pdf`.
--   **create_endangerment_heatmap_country.py** — Creates a heatmap of language endangerment at the country level. Outputs `endangerment_heatmap_country.png` and `endangerment_heatmap_country.pdf`.
--   **generate_endangerment_report.py & generate_endangerment_report_parties_only.py** — Creates a Markdown report on language endangerment. Outputs `endangerment_report.md` or `endangerment_report_parties_only.md`.
+-   **create_language_map_endangerment.py** — Creates a map of linguistic diversity by terrestrial ecoregion. Outputs `languages_ecoregions_map.png` and `languages_ecoregions_map.pdf`.
+-   **create_endangerment_heatmap.py** — Creates a heatmap of linguistic diversity by UN sub-region. Outputs `endangerment_heatmap.png` and `endangerment_heatmap.pdf`.
+-   **create_endangerment_heatmap_country.py** — Creates a heatmap of linguistic diversity at the country level. Outputs `endangerment_heatmap_country.png` and `endangerment_heatmap_country.pdf`.
+-   **generate_endangerment_report.py & generate_endangerment_report_parties_only.py** — Creates a Markdown report on linguistic diversity. Outputs `endangerment_report.md` or `endangerment_report_parties_only.md`.
 -   **Outputs/** — Contains all outputs from above scripts
 
 
@@ -55,7 +55,7 @@ These coordinates are indicative and should not be treated as precise representa
 
 ### Endangerment
 
-Glottolog uses the Agglomerated Endangerment Status (AES) to classify language endangerment. This integrates data from [The Catalogue of Endangered Languages (ELCat)](http://www.endangeredlanguages.com/), [UNESCO Atlas of the World's Languages in Danger](https://www.unesco.org/culture/endangeredlanguages/) and [Ethnologue](https://www.ethnologue.com/).
+Glottolog uses the Agglomerated Endangerment Status (AES) to classify linguistic diversity. This integrates data from [The Catalogue of Endangered Languages (ELCat)](http://www.endangeredlanguages.com/), [UNESCO Atlas of the World's Languages in Danger](https://www.unesco.org/culture/endangeredlanguages/) and [Ethnologue](https://www.ethnologue.com/).
 
 
 ## Citations
@@ -73,7 +73,7 @@ Harmon, D and Loh, J. 2010. The Index of Linguistic Diversity: A new Quantitativ
 
 The map component of this repository was inspired by the original ground-breaking collaboration between WWF, Terralingua and UNEP in 2000. We have 
 applied the same logic used in that map using the Glottolog data and the Dineretsin 2017 data to create a digital version of the map focusing on
-language endangerment by ecoregion. 
+linguistic diversity by ecoregion. 
 
 Please cite the original map as follows with a link to the original:
 

@@ -9,10 +9,12 @@ Filter glottolog_data.csv to keep only languages spoken in CBD Party countries.
 
 import csv
 import io
+from pathlib import Path
 
-CBD_FILE = "cbd_parties.csv"
-GLOTTOLOG_FILE = "glottolog_data.csv"
-OUTPUT_FILE = "cbd_party_languages.csv"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CBD_FILE = PROJECT_ROOT / "data" / "cbd_parties.csv"
+GLOTTOLOG_FILE = PROJECT_ROOT / "data-raw" / "glottolog_data.csv"
+OUTPUT_FILE = PROJECT_ROOT / "data" / "cbd_party_languages.csv"
 
 
 def load_cbd_party_codes(filepath):

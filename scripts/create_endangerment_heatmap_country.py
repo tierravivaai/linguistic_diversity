@@ -49,10 +49,12 @@ LABEL_POSITIONS = {
 
 
 def main():
-    base_dir = Path(__file__).parent
-    csv_path = base_dir / "glottolog_data.csv"
-    output_png = base_dir / "endangerment_heatmap_country.png"
-    output_pdf = base_dir / "endangerment_heatmap_country.pdf"
+    project_root = Path(__file__).resolve().parent.parent
+    csv_path = project_root / "data-raw" / "glottolog_data.csv"
+    output_dir = project_root / "outputs" / "endangerment"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_png = output_dir / "endangerment_heatmap_country.png"
+    output_pdf = output_dir / "endangerment_heatmap_country.pdf"
 
     # --- Load world boundaries ---
     print("Loading Natural Earth country boundaries...")

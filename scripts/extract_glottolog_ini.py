@@ -10,9 +10,10 @@ from pathlib import Path
 
 GLOTTOLOG_REPO_URL = "https://github.com/glottolog/glottolog"
 SCRIPT_DIR = Path(__file__).resolve().parent
-GLOTTOLOG_DIR = SCRIPT_DIR / "glottolog"
+PROJECT_ROOT = SCRIPT_DIR.parent
+GLOTTOLOG_DIR = PROJECT_ROOT / "glottolog"
 TREE_DIR = GLOTTOLOG_DIR / "languoids" / "tree"
-OUTPUT_CSV = SCRIPT_DIR / "glottolog_data.csv"
+OUTPUT_CSV = PROJECT_ROOT / "data-raw" / "glottolog_data.csv"
 
 
 def ensure_glottolog_repo():

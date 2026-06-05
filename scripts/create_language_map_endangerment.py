@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-Create a polished global map of language locations over terrestrial ecoregions,
-with language dots colored by endangerment status.
+Create two global maps of language locations over terrestrial ecoregions:
+
+1. Endangerment map: language dots coloured by endangerment status,
+   written to outputs/endangerment/languages_ecoregions_map.{png,pdf}
+
+2. Diversity map: all languages as simple red dots over ecoregions,
+   written to outputs/languages_ecoregions_map.{png,pdf}
+
+Both share the same biome colour layer and Robinson projection.
 
 This version:
 - reduces left/right whitespace around the map
@@ -103,52 +110,17 @@ def style_panel(ax):
         spine.set_linewidth(0.8)
 
 
-def main():
-    base_dir = Path(__file__).parent
-    shapefile_path = base_dir / "Ecoregions2017" / "Ecoregions2017.shp"
-    csv_path = base_dir / "glottolog_data.csv"
-    output_png = base_dir / "languages_ecoregions_map.png"
-    output_pdf = base_dir / "languages_ecoregions_map.pdf"
-
-    print("Loading ecoregions shapefile...")
-    ecoregions = gpd.read_file(shapefile_path)
-    print(f"Loaded {len(ecoregions):,} ecoregions")
-
-    print("Loading language data...")
-    languages = pd.read_csv(csv_path, low_memory=False)
-
-    languages = languages[languages["core.level"] == "language"].copy()
-    print(f"Found {len(languages):,} language-level entries")
-
-    languages = languages.dropna(subset=["core.latitude", "core.longitude"]).copy()
-    print(f"Found {len(languages):,} languages with valid coordinates")
-
-    languages["endangerment"] = languages["endangerment.status"].fillna("no data")
-
-    languages_gdf = gpd.GeoDataFrame(
-        languages,
-        geometry=gpd.points_from_xy(
-            languages["core.longitude"],
-            languages["core.latitude"],
-        ),
-        crs="EPSG:4326",
-    )
-
-    if ecoregions.crs is None:
-        raise ValueError("Ecoregions shapefile has no CRS defined.")
-    if ecoregions.crs != "EPSG:4326":
-        ecoregions = ecoregions.to_crs("EPSG:4326")
-
-    print("Preparing biome colors...")
-    ecoregions["plot_color"] = ecoregions["BIOME_NAME"].map(BIOME_COLORS).fillna("#C7CDD4")
-
-    print("Reprojecting layers to Robinson...")
-    ecoregions_proj = ecoregions.to_crs(ROBINSON_CRS)
-    languages_proj = languages_gdf.to_crs(ROBINSON_CRS)
-
-    print("Building coastline outline...")
-    land_outline = ecoregions_proj[["geometry"]].dissolve()
-
+def main(
+    ecoregions_proj,
+    ecoregions,
+    land_outline,
+    languages,
+    languages_proj,
+    languages_gdf,
+    output_png,
+    output_pdf,
+):
+    print("Creating endangerment figure...")
     print("Creating figure...")
     fig = plt.figure(figsize=(20, 12), facecolor="white")
 
@@ -364,5 +336,229 @@ def main():
     print("Done.")
 
 
+def create_diversity_map(
+    ecoregions_proj,
+    ecoregions,
+    land_outline,
+    languages,
+    languages_proj,
+    languages_gdf,
+    output_png,
+    output_pdf,
+    project_root,
+):
+    """Create a simple red-dot map of all languages over ecoregions (no endangerment colouring)."""
+    from matplotlib.colors import to_rgba
+
+    LANG_DOT_COLOR = "#C0392B"
+    LANG_DOT_ALPHA = 0.6
+    LANG_DOT_SIZE = 3.5
+    LANG_DOT_EDGE = "none"
+    LANG_DOT_LW = 0
+
+    print("Creating diversity (red-dot) figure...")
+    fig = plt.figure(figsize=(20, 12), facecolor="white")
+
+    ax = fig.add_axes([0.005, 0.05, 0.99, 0.86])
+    ax.set_facecolor("#F7F8FA")
+
+    ecoregions_proj.plot(
+        ax=ax,
+        color=ecoregions_proj["plot_color"],
+        linewidth=0.0,
+        edgecolor="none",
+        alpha=0.96,
+        zorder=1,
+    )
+
+    land_outline.boundary.plot(
+        ax=ax,
+        color="#7A7A7A",
+        linewidth=0.25,
+        alpha=0.35,
+        zorder=2,
+    )
+
+    languages_proj.plot(
+        ax=ax,
+        color=LANG_DOT_COLOR,
+        markersize=LANG_DOT_SIZE,
+        alpha=LANG_DOT_ALPHA,
+        edgecolor=LANG_DOT_EDGE,
+        linewidth=LANG_DOT_LW,
+        zorder=3,
+    )
+
+    xmin, ymin, xmax, ymax = ecoregions_proj.total_bounds
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+    ax.set_axis_off()
+
+    fig.text(
+        0.5,
+        0.955,
+        "Global Distribution of Languages Overlaid on Terrestrial Ecoregions",
+        ha="center",
+        va="top",
+        fontsize=18,
+        fontweight="bold",
+        color="#1F2937",
+    )
+
+    fig.text(
+        0.5,
+        0.928,
+        f"{len(languages):,} languages across {ecoregions['BIOME_NAME'].nunique()} biome classes",
+        ha="center",
+        va="top",
+        fontsize=10,
+        color="#4B5563",
+    )
+
+    # Biome legend panel below the map
+    print("Building biome legend panel...")
+    panel_y = 0.010
+    panel_h = 0.045
+    panel_w = 0.90
+    panel_x = (1.0 - panel_w) / 2
+
+    panel_ax = fig.add_axes([panel_x, panel_y, panel_w, panel_h])
+    style_panel(panel_ax)
+
+    biome_handles = []
+    present_biomes = set(ecoregions["BIOME_NAME"].dropna().unique())
+    for biome in BIOME_ORDER:
+        if biome in present_biomes:
+            biome_handles.append(
+                mpatches.Patch(
+                    facecolor=BIOME_COLORS.get(biome, "#C7CDD4"),
+                    edgecolor="none",
+                    label=biome,
+                )
+            )
+
+    lang_handle = mpatches.Patch(
+        facecolor=LANG_DOT_COLOR,
+        edgecolor="none",
+        label=f"Languages ({len(languages):,})",
+    )
+    biome_handles.append(lang_handle)
+
+    panel_ax.legend(
+        handles=biome_handles,
+        loc="upper left",
+        bbox_to_anchor=(0.005, 0.95),
+        bbox_transform=panel_ax.transAxes,
+        frameon=False,
+        ncol=4,
+        fontsize=9,
+        borderaxespad=0.0,
+        borderpad=0.2,
+        labelspacing=0.25,
+        columnspacing=1.2,
+        handlelength=1.0,
+        handletextpad=0.4,
+    )
+
+    fig.text(
+        0.5,
+        0.002,
+        "Sources: Olson et al. (2001) ecoregions; Glottolog languoid tree data.",
+        ha="center",
+        va="bottom",
+        fontsize=8,
+        color="#6B7280",
+    )
+
+    print(f"Saving diversity PNG to {output_png} ...")
+    fig.savefig(
+        output_png,
+        dpi=300,
+        bbox_inches="tight",
+        facecolor=fig.get_facecolor(),
+    )
+
+    print(f"Saving diversity PDF to {output_pdf} ...")
+    fig.savefig(
+        output_pdf,
+        bbox_inches="tight",
+        facecolor=fig.get_facecolor(),
+    )
+
+    plt.close(fig)
+    print("Diversity map done.")
+
+
 if __name__ == "__main__":
-    main()
+    project_root = Path(__file__).resolve().parent.parent
+    shapefile_path = project_root / "data-raw" / "Ecoregions2017" / "Ecoregions2017.shp"
+    csv_path = project_root / "data-raw" / "glottolog_data.csv"
+
+    # Load shared data once
+    print("Loading ecoregions shapefile...")
+    ecoregions = gpd.read_file(shapefile_path)
+    print(f"Loaded {len(ecoregions):,} ecoregions")
+
+    print("Loading language data...")
+    languages = pd.read_csv(csv_path, low_memory=False)
+    languages = languages[languages["core.level"] == "language"].copy()
+    print(f"Found {len(languages):,} language-level entries")
+
+    languages = languages.dropna(subset=["core.latitude", "core.longitude"]).copy()
+    print(f"Found {len(languages):,} languages with valid coordinates")
+
+    languages["endangerment"] = languages["endangerment.status"].fillna("no data")
+
+    languages_gdf = gpd.GeoDataFrame(
+        languages,
+        geometry=gpd.points_from_xy(
+            languages["core.longitude"],
+            languages["core.latitude"],
+        ),
+        crs="EPSG:4326",
+    )
+
+    if ecoregions.crs is None:
+        raise ValueError("Ecoregions shapefile has no CRS defined.")
+    if ecoregions.crs != "EPSG:4326":
+        ecoregions = ecoregions.to_crs("EPSG:4326")
+
+    print("Preparing biome colors...")
+    ecoregions["plot_color"] = ecoregions["BIOME_NAME"].map(BIOME_COLORS).fillna("#C7CDD4")
+
+    print("Reprojecting layers to Robinson...")
+    ecoregions_proj = ecoregions.to_crs(ROBINSON_CRS)
+    languages_proj = languages_gdf.to_crs(ROBINSON_CRS)
+
+    print("Building coastline outline...")
+    land_outline = ecoregions_proj[["geometry"]].dissolve()
+
+    # Endangerment map -> outputs/endangerment/
+    end_dir = project_root / "outputs" / "endangerment"
+    end_dir.mkdir(parents=True, exist_ok=True)
+    main(
+        ecoregions_proj=ecoregions_proj,
+        ecoregions=ecoregions,
+        land_outline=land_outline,
+        languages=languages,
+        languages_proj=languages_proj,
+        languages_gdf=languages_gdf,
+        output_png=end_dir / "languages_ecoregions_map.png",
+        output_pdf=end_dir / "languages_ecoregions_map.pdf",
+    )
+
+    # Diversity map (red dots on ecoregions) -> outputs/
+    # Do not overwrite existing: languages_ecoregions_map_prev.png
+    div_dir = project_root / "outputs"
+    div_dir.mkdir(parents=True, exist_ok=True)
+    create_diversity_map(
+        ecoregions_proj=ecoregions_proj,
+        ecoregions=ecoregions,
+        land_outline=land_outline,
+        languages=languages,
+        languages_proj=languages_proj,
+        languages_gdf=languages_gdf,
+        output_png=div_dir / "languages_ecoregions_map.png",
+        output_pdf=div_dir / "languages_ecoregions_map.pdf",
+        project_root=project_root,
+    )

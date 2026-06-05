@@ -260,9 +260,11 @@ ENDANGERED_STATUSES = {"shifting", "threatened", "moribund", "nearly extinct"}
 
 
 def main():
-    base_dir = Path(__file__).parent
-    csv_path = base_dir / "cbd_party_languages.csv"
-    output_path = base_dir / "endangerment_report_parties_only.md"
+    project_root = Path(__file__).resolve().parent.parent
+    csv_path = project_root / "data" / "cbd_party_languages.csv"
+    output_dir = project_root / "outputs" / "endangerment"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "endangerment_report_parties_only.md"
 
     df = pd.read_csv(csv_path, low_memory=False)
     langs = df[df["core.level"] == "language"].copy()

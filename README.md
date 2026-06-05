@@ -1,6 +1,8 @@
 # Extracting and Visualizing Linguistic Diversity Data
 
-This repository covers the process for extracting language data from Glottolog, including information about linguistic diversity, and visualising it by mapping the data onto Ecoregions data from Olson et al. (2001) to create a map of language endangerment by ecoregion and a heatmap of language endangerment by UN sub-region.
+This repository covers the process for extracting language data from Glottolog, including information about linguistic diversity, and visualising it by mapping the data onto Ecoregions data from Olson et al. (2001) to create a map of languages. 
+
+Measures of language endangerment are a separate topic within this daata. A separate map of language endangerment by ecoregion and a heatmap of language endangerment by UN sub-region is also provided.
 
 ## Ecoregions2017
 
@@ -22,16 +24,31 @@ Data about Glottolog languoids (languages, dialects, or sub-groups, aka families
 
 This repository contains:
 
--   **extract_glottolog_ini.py** — Pulls the Glottolog GitHub repository if not already present, and extracts languoid data from the INI files into a CSV file called `glottolog_data.csv`.
--   **glottolog_data.csv** — The extracted language data in a tabular format. This table contains the full information found in the INI files for each languoid. This includes information about the language, countries where this language is spoken, a single co-ordinate for the language, endangerment status and any available links or sources. To navigate the data structure, it may be helpful to view a sample INI file, which can be found at the bottom of this page.
--   **cbd_parties.csv** - Contains a list of CBD Parties and relevant country codes sourced from https://www.cbd.int/information/parties.shtml This has been expanded to include country codes for all 27 EU member states as of April 2026. This dataset was used to filter `glottolog_data.csv` to produce `cbd_party_languages.csv`.
--   **filter_cbd_languages.py** - The script used to filter `glottolog_data.csv`, removing all languages not spoken in CBD Party countries and all references to non-CBD Parties. The script outputs `cbd_party_languages.csv`.
--   **cbd_party_languages.csv** - Contains only languages found in CBD Party countries. Excludes all other country codes from country data. To navigate the data structure, it may be helpful to view a sample INI file, which can be found at the bottom of this page.
--   **create_language_map_endangerment.py** — Creates a map of language endangerment by terrestrial ecoregion. Outputs `languages_ecoregions_map.png` and `languages_ecoregions_map.pdf`.
--   **create_endangerment_heatmap.py** — Creates a heatmap of language endangerment by UN sub-region. Outputs `endangerment_heatmap.png` and `endangerment_heatmap.pdf`.
--   **create_endangerment_heatmap_country.py** — Creates a heatmap of language endangerment at the country level. Outputs `endangerment_heatmap_country.png` and `endangerment_heatmap_country.pdf`.
--   **generate_endangerment_report.py & generate_endangerment_report_parties_only.py** — Creates a Markdown report on language endangerment. Outputs `endangerment_report.md` or `endangerment_report_parties_only.md`.
--   **Outputs/** — Contains all outputs from above scripts
+-   **scripts/** — Python scripts for data extraction, filtering, and visualisation:
+    -   `extract_glottolog_ini.py` — Pulls the Glottolog GitHub repository if not already present, and extracts languoid data from the INI files into a CSV file called `glottolog_data.csv`.
+    -   `filter_cbd_languages.py` — Filters `glottolog_data.csv`, removing all languages not spoken in CBD Party countries and all references to non-CBD Parties. The script outputs `cbd_party_languages.csv`.
+    -   `create_language_map_endangerment.py` — Creates two maps: (1) language endangerment by ecoregion (written to `outputs/endangerment/`) and (2) a simpler red-dot linguistic diversity map over ecoregions (written to `outputs/`).
+    -   `create_endangerment_heatmap.py` — Creates a heatmap of language endangerment by UN sub-region.
+    -   `create_endangerment_heatmap_country.py` — Creates a heatmap of language endangerment at the country level.
+    -   `generate_endangerment_report.py` — Creates a Markdown report on language endangerment (all countries).
+    -   `generate_endangerment_report_parties_only.py` — Creates a Markdown report on language endangerment for CBD Party countries only.
+-   **data-raw/** — Raw and source data:
+    -   `glottolog_data.csv` — The extracted language data in tabular format, containing full information from the INI files for each languoid.
+    -   `Ecoregions2017/` — Ecoregions shapefile data (download separately from <https://ecoregions.appspot.com>).
+-   **data/** — Processed data:
+    -   `cbd_parties.csv` — List of CBD Parties and relevant country codes sourced from <https://www.cbd.int/information/parties.shtml>, expanded to include country codes for all 27 EU member states.
+    -   `cbd_party_languages.csv` — Languages found in CBD Party countries only, with all non-CBD Party country references removed.
+-   **R/** — R scripts:
+    -   `cbd_countries.R` — Processes `cbd_party_languages.csv` into long-format country-by-language data.
+-   **outputs/** — Top-level outputs:
+    -   `languages_ecoregions_map.png` / `.pdf` — Linguistic diversity map (red dots over ecoregions).
+    -   `languages_ecoregions_map_prev.png` — Previous version of the diversity map.
+    -   **endangerment/** — Endangerment-specific outputs:
+        -   `endangerment_heatmap.png` / `.pdf` — Heatmap by UN sub-region.
+        -   `endangerment_heatmap_country.png` / `.pdf` — Heatmap by country.
+        -   `languages_ecoregions_map.png` / `.pdf` — Language endangerment map over ecoregions.
+        -   `endangerment_report.md` — Full endangerment report.
+        -   `endangerment_report_parties_only.md` — Endangerment report for CBD Parties only.
 
 
 ## Notes about Glottolog data

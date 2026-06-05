@@ -2,7 +2,7 @@
 
 This repository covers the process for extracting language data from Glottolog, including information about linguistic diversity, and visualising it by mapping the data onto Ecoregions data from Olson et al. (2001) to create a map of languages. 
 
-Measures of language endangerment are a separate topic within this daata. A separate map of language endangerment by ecoregion and a heatmap of language endangerment by UN sub-region is also provided.
+Measures of language endangerment are a separate topic within this data. A separate map of language endangerment by ecoregion and a heatmap of language endangerment by UN sub-region is also provided.
 
 ## Ecoregions2017
 

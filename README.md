@@ -24,9 +24,10 @@ Data about Glottolog languoids (languages, dialects, or sub-groups, aka families
 
 This repository contains:
 
--   **scripts/** — Python scripts for data extraction, filtering, and visualisation:
+-   **scripts/** — Python and R scripts for data extraction, filtering, counting, and visualisation:
     -   `extract_glottolog_ini.py` — Pulls the Glottolog GitHub repository if not already present, and extracts languoid data from the INI files into a CSV file called `glottolog_data.csv`.
-    -   `filter_cbd_languages.py` — Filters `glottolog_data.csv`, removing all languages not spoken in CBD Party countries and all references to non-CBD Parties. The script outputs `cbd_party_languages.csv`.
+    -   `filter_cbd_languages.py` / `filter_cbd_languages.R` — Filter `glottolog_data.csv` to languages spoken in the 195 sovereign CBD Party countries (196 Parties = 195 states + EU), removing non-Party country codes. Both produce identical `cbd_party_languages.csv`. Handles missing ISO_A2 codes for Côte d'Ivoire (CI), Türkiye (TR), and Namibia (NA); deduplicates EU member states; uses NFC normalisation for Unicode combining characters.
+    -   `cbd_party_language_count.py` / `cbd_party_language_count.R` — Count unique languages per CBD Party country. Both produce identical `cbd_party_language_count.csv` with columns: `country_name`, `iso_a2`, `iso_a3`, `language_count`.
     -   `create_language_map_endangerment.py` — Creates two maps: (1) language endangerment by ecoregion (written to `outputs/endangerment/`) and (2) a simpler red-dot linguistic diversity map over ecoregions (written to `outputs/`).
     -   `create_endangerment_heatmap.py` — Creates a heatmap of language endangerment by UN sub-region.
     -   `create_endangerment_heatmap_country.py` — Creates a heatmap of language endangerment at the country level.
@@ -34,11 +35,13 @@ This repository contains:
     -   `generate_endangerment_report_parties_only.py` — Creates a Markdown report on language endangerment for CBD Party countries only.
 -   **data-raw/** — Raw and source data:
     -   `glottolog_data.csv` — The extracted language data in tabular format, containing full information from the INI files for each languoid.
+    -   `sharing-a-world-of-difference_english.pdf` — Reference PDF: the original WWF/Terralingua/UNP report (2000).
     -   `Ecoregions2017/` — Ecoregions shapefile data (download separately from <https://ecoregions.appspot.com>).
 -   **data/** — Processed data:
     -   `cbd_parties.csv` — List of CBD Parties and relevant country codes sourced from <https://www.cbd.int/information/parties.shtml>, expanded to include country codes for all 27 EU member states.
     -   `cbd_party_languages.csv` — Languages found in CBD Party countries only, with all non-CBD Party country references removed.
--   **R/** — R scripts:
+    -   `cbd_party_language_count.csv` — Count of unique languages per CBD Party country (country name, ISO_A2, ISO_A3, language count), sorted by count descending.
+-   **R/** — R scripts (each has a Python equivalent in `scripts/` producing identical output):
     -   `cbd_countries.R` — Processes `cbd_party_languages.csv` into long-format country-by-language data.
 -   **outputs/** — Top-level outputs:
     -   `languages_ecoregions_map.png` / `.pdf` — Linguistic diversity map (red dots over ecoregions).
@@ -49,6 +52,13 @@ This repository contains:
         -   `languages_ecoregions_map.png` / `.pdf` — Language endangerment map over ecoregions.
         -   `endangerment_report.md` — Full endangerment report.
         -   `endangerment_report_parties_only.md` — Endangerment report for CBD Parties only.
+-   **tests/** — Regression tests ensuring Python and R pipelines produce identical results:
+    -   `test_filter_cbd_languages.py` — 21 pytest tests for the CBD Party filter (Party code loading, Unicode fixes, EU deduplication, language-level filtering, output parity).
+    -   `test_filter_cbd_languages.R` — 9 testthat tests mirroring the Python filter suite.
+    -   `test_cbd_party_language_count.py` — 6 pytest tests for the language count script.
+    -   `test_cbd_party_language_count.R` — 6 testthat tests mirroring the Python count suite.
+    -   Run Python tests: `python3 -m pytest tests/ -v`
+    -   Run R tests: `Rscript tests/test_filter_cbd_languages.R && Rscript tests/test_cbd_party_language_count.R`
 
 
 ## Notes about Glottolog data

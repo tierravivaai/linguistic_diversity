@@ -43,7 +43,7 @@ def load_cbd_party_codes(filepath):
     with open(filepath, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            party_date = row.get("Party", "").strip()
+            party_date = (row.get("Party") or "").strip()
             if not party_date:
                 continue  # Not a Party (e.g. Holy See, USA)
 

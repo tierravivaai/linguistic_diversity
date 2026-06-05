@@ -1,94 +1,91 @@
 #!/usr/bin/env Rscript
 # filter_cbd_languages.R
-# Filter glottolog_data.csv to keep only languages spoken in the 196 CBD Party countries.
+# Filter glottolog_data.csv to keep only languages spoken in CBD Party countries.
 #
-# The cbd_parties.csv file contains 224 rows: 196 sovereign Parties (including the EU
-# as one Party covering 27 member states), plus non-Parties (Holy See, USA). The EU
-# member states appear twice — once under their own entry and once under the EU — so
-# we deduplicate by ISO_A2 code. Two rows (Côte d'Ivoire and Türkiye) have blank
-# ISO_A2 codes; we manually assign them (CI, TR).
+# The cbd_parties.csv file contains 224 rows: 196 CBD Parties (including the EU
+# as one Party covering 27 member states), plus non-Parties (Holy See, USA).
+# The EU member states appear twice — once under their own entry and once under
+# the EU — so we deduplicate by ISO_A2 code. Two rows (Cote d'Ivoire and
+# Turkiye) have blank ISO_A2 codes; we manually assign them (CI, TR).
 #
-# This script produces the same cbd_party_languages.csv as the Python version but
-# correctly resolves to the full 196 Parties.
+# This script produces the same cbd_party_languages.csv as the Python version
+# (scripts/filter_cbd_languages.py).
 
 library(tidyverse)
-library(janitor)
+library(stringi)
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 
 project_root <- here::here()
 
-cbd_file      <- file.path(project_root, "data", "cbd_parties.csv")
+cbd_file       <- file.path(project_root, "data", "cbd_parties.csv")
 glottolog_file <- file.path(project_root, "data-raw", "glottolog_data.csv")
-output_file   <- file.path(project_root, "data", "cbd_party_languages.csv")
+output_file    <- file.path(project_root, "data", "cbd_party_languages.csv")
 
-# ── Manual fixes for rows with missing ISO codes ───────────────────────────────
+# ── Load CBD parties (no clean_names to preserve original column names) ──────
 
-iso2_fixes <- c(
-  "Côte d'Ivoire" = "CI",
-  "Türkiye"       = "TR"
-)
+cbd_raw <- read_csv(cbd_file, show_col_types = FALSE)
 
-# ── Load and clean CBD parties ─────────────────────────────────────────────────
-
-cbd_raw <- read_csv(cbd_file, show_col_types = FALSE) %>%
-  janitor::clean_names()
-
+# Build the set of CBD Party ISO_A2 codes
 cbd_parties <- cbd_raw %>%
-  # Only keep rows where Party date is present (i.e. ratified/acceded)
-  filter(!is.na(party) & str_trim(party) != "") %>%
-  # Fix missing ISO_A2 codes
+  # Trim whitespace from key columns
   mutate(
-    iso_a2 = str_trim(iso_a2),
-    iso_a2 = if_else(
-      iso_a2 == "" | is.na(iso_a2),
-      recode(country, !!!iso2_fixes),
-      iso_a2
+    Country = str_trim(Country),
+    `ISO_A2` = str_trim(`ISO_A2`),
+    Party = str_trim(Party)
+  ) %>%
+  # Only keep rows where Party date is present (i.e. ratified/acceded)
+  filter(Party != "" & !is.na(Party)) %>%
+  # Fix missing or NA ISO_A2 codes
+  # Türkiye has a combining diaeresis (U+0308) making grepl unreliable;
+  # we normalise to NFC and do an exact match instead.
+  mutate(
+    Country_nfc = stri_trans_nfc(Country),
+    `ISO_A2` = case_when(
+      (`ISO_A2` == "" | is.na(`ISO_A2`)) & Country_nfc == "C\u00f4te d'Ivoire" ~ "CI",
+      (`ISO_A2` == "" | is.na(`ISO_A2`)) & Country_nfc == "T\u00fcrkiye"         ~ "TR",
+      (`ISO_A2` == "" | is.na(`ISO_A2`)) & Country == "Namibia"                  ~ "NA",
+      TRUE                                                                         ~ `ISO_A2`
     )
   ) %>%
   # De-duplicate: EU member states appear both individually and under the EU entry
-  distinct(iso_a2, .keep_all = TRUE) %>%
-  filter(!is.na(iso_a2) & iso_a2 != "") %>%
-  select(country, iso_a2, iso_a3, party)
+  distinct(`ISO_A2`, .keep_all = TRUE) %>%
+  filter(!is.na(`ISO_A2`) & `ISO_A2` != "")
 
-cat(sprintf("Loaded %d CBD Party ISO_A2 codes\n", nrow(cbd_parties)))
+cbd_codes <- unique(cbd_parties$`ISO_A2`)
+cat(sprintf("Loaded %d CBD Party ISO_A2 codes\n", length(cbd_codes)))
 
 # ── Load and filter Glottolog data ─────────────────────────────────────────────
 
-cbd_codes <- unique(cbd_parties$iso_a2)
-
-glottolog <- read_csv(glottolog_file, show_col_types = FALSE) %>%
-  # Only language-level entries
-  filter(core.level == "language")
+glottolog <- read_csv(glottolog_file, show_col_types = FALSE, na = "") %>%
+  filter(`core.level` == "language")
 
 cat(sprintf("Found %d language-level entries in Glottolog\n", nrow(glottolog)))
 
-# Explode country codes and keep rows where at least one country is a CBD Party
+# For each language, check if any country code in core.countries is a CBD Party.
+# Then rebuild core.countries with only CBD Party codes.
 cbd_languages <- glottolog %>%
-  # Split pipe-separated country codes into individual rows
+  rowwise() %>%
   mutate(
-    core_countries_raw = core_countries,
-    core_countries_list = str_split(core_countries, "\\s*\\|\\s*")
-  ) %>%
-  unnest(core_countries_list) %>%
-  mutate(iso_a2 = str_trim(core_countries_list)) %>%
-  filter(iso_a2 != "") %>%
-  # Keep only rows where the country is a CBD Party
-  filter(iso_a2 %in% cbd_codes) %>%
-  # Rebuild the pipe-separated country string with only CBD Party codes
-  group_by(across(-core_countries_list)) %>%
-  summarise(
-    core_countries = str_c(sort(unique(iso_a2)), collapse = " | "),
-    .groups = "drop"
+    .raw_countries = `core.countries`,
+    .country_codes = list(str_split(str_trim(.raw_countries), "\\s*\\|\\s*")[[1]]),
+    .cbd_codes = list(purrr::keep(.country_codes, ~ .x %in% cbd_codes)),
+    .has_cbd = length(.cbd_codes) > 0
   ) %>%
   ungroup() %>%
-  # Remove the temporary columns we added
-  select(-core_countries_raw, -iso_a2)
+  filter(.has_cbd) %>%
+  mutate(
+    `core.countries` = sapply(.cbd_codes, function(codes) {
+      str_c(sort(unique(codes)), collapse = " | ")
+    })
+  ) %>%
+  select(-.raw_countries, -.country_codes, -.cbd_codes, -.has_cbd)
 
+skipped <- nrow(glottolog) - nrow(cbd_languages)
 cat(sprintf(
   "Kept %d languages, skipped %d (not in any CBD Party country)\n",
   nrow(cbd_languages),
-  nrow(glottolog) - nrow(cbd_languages)
+  skipped
 ))
 
 # ── Write output ───────────────────────────────────────────────────────────────

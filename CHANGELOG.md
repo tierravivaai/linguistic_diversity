@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [2025-06-05b] — Language count per CBD Party
+
+### Added
+
+- **`scripts/cbd_party_language_count.py`** — Python script that counts unique language-level glottocodes per CBD Party country and writes `data/cbd_party_language_count.csv` with columns: `country_name`, `iso_a2`, `iso_a3`, `language_count`.
+- **`scripts/cbd_party_language_count.R`** — R equivalent producing identical output.
+- **Both scripts** read `cbd_party_languages.csv` and `cbd_parties.csv`, handle missing ISO codes (CI, TR, NA) and EU deduplication consistently with the filter scripts.
+- **tests/test_cbd_party_language_count.py** — 6 pytest tests: output exists, 195 countries, correct columns, sorted descending, known countries present, counts consistent with source data.
+- **tests/test_cbd_party_language_count.R** — 6 testthat tests mirroring the Python suite.
+
 ## [2025-06-05] — Repo reorganisation and filter fixes
 
 ### Changed

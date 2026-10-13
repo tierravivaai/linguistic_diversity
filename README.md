@@ -28,7 +28,7 @@ This repository contains:
     -   `extract_glottolog_ini.py` — Pulls the Glottolog GitHub repository if not already present, and extracts languoid data from the INI files into a CSV file called `glottolog_data.csv`.
     -   `filter_cbd_languages.py` / `filter_cbd_languages.R` — Filter `glottolog_data.csv` to languages spoken in the 195 sovereign CBD Party countries (196 Parties = 195 states + EU), removing non-Party country codes. Both produce identical `cbd_party_languages.csv`. Handles missing ISO_A2 codes for Côte d'Ivoire (CI), Türkiye (TR), and Namibia (NA); deduplicates EU member states; uses NFC normalisation for Unicode combining characters.
     -   `cbd_party_language_count.py` / `cbd_party_language_count.R` — Count unique languages per CBD Party country. Both produce identical `cbd_party_language_count.csv` with columns: `country_name`, `iso_a2`, `iso_a3`, `language_count`.
-    -   `create_language_map_endangerment.py` — Creates two maps: (1) language endangerment by ecoregion (written to `outputs/endangerment/`) and (2) a simpler red-dot linguistic diversity map over ecoregions (written to `outputs/`).
+    -   `create_language_map_endangerment.py` — Creates two maps: (1) language endangerment by ecoregion (written to `outputs/endangerment/`) and (2) a simpler red-dot linguistic diversity map over ecoregions (written to `outputs/`). Both maps filter to spoken L1 languages only (excluding sign languages, pidgins, and other non-genealogical categories), exclude extinct languages, validate coordinates against land areas, and crop Antarctica from view. See [Language filtering and validation](#language-filtering-and-validation) below for details.
     -   `create_endangerment_heatmap.py` — Creates a heatmap of language endangerment by UN sub-region.
     -   `create_endangerment_heatmap_country.py` — Creates a heatmap of language endangerment at the country level.
     -   `generate_endangerment_report.py` — Creates a Markdown report on language endangerment (all countries).
@@ -84,6 +84,20 @@ These coordinates are indicative and should not be treated as precise representa
 
 Glottolog uses the Agglomerated Endangerment Status (AES) to classify language endangerment. This integrates data from [The Catalogue of Endangered Languages (ELCat)](http://www.endangeredlanguages.com/), [UNESCO Atlas of the World's Languages in Danger](https://www.unesco.org/culture/endangeredlanguages/) and [Ethnologue](https://www.ethnologue.com/).
 
+### Language filtering and validation
+
+The map and report scripts apply the following filters to the raw Glottolog data (8,618 language-level entries as of Glottolog 5.3, accessed 22 April 2026):
+
+1. **Spoken L1 languages only (7,674):** Excludes languages under Glottolog's non-genealogical trees — sign languages (227), unclassifiable (128), pidgins (87), unattested (68), artificial languages (31), speech registers (19), mixed languages (4), and bookkeeping entries (380). This matches the "spoken L1 language" count reported on the [Glottolog website](https://glottolog.org/glottolog/glottologinformation) and the figure cited by Boissonneault & Hammarström (2026).
+
+2. **Extinct languages excluded (6,697):** 977 extinct spoken L1 languages are removed to align with Ethnologue's count of living languages.
+
+3. **Coordinate range validation (6,696):** Coordinates must be within valid lat/lon ranges (±90/±180) and not at null island (0, 0).
+
+4. **Land validation (6,688):** Each point is buffered by 200km in Robinson projection and checked for intersection with ecoregion polygons. This removes 8 languages on remote Pacific atolls (Nauru, Tokelau, Anuta, Kapingamarangi, Nukuoro, Luangiua, Nukumanu, Takuu) whose centroids are >200km from any land represented in the ecoregions dataset. The buffer accommodates island languages where the single centroid may fall just offshore.
+
+The final map shows **6,688 spoken L1 languages** (non-extinct, on or near land, with valid coordinates).
+
 
 ## Citations
 
@@ -92,6 +106,8 @@ Olson, D. M. et al. (2001). *Terrestrial Ecoregions of the World: A New Map of L
 Dinerstein, E. et al. (2017). *An Ecoregion-Based Approach to Protecting Half the Terrestrial Realm*. BioScience, 67(6), 534–545. <https://doi.org/10.1093/biosci/bix014>
 
 Hammarström, H., Forkel, R., Haspelmath, M., & Bank, S. (2026). *Glottolog 5.3*. Leipzig: Max Planck Institute for Evolutionary Anthropology. <https://doi.org/10.5281/zenodo.18840935>
+
+Boissonneault, M. and Hammarström, H. (2026). *What do we know about the language extinction rate?* Cambridge Prisms: Extinction. <https://doi.org/10.1017/ext.2026.10019>
 
 Harmon, D and Loh, J. 2010. The Index of Linguistic Diversity: A new Quantitative Measure of Trends in the Status of the World’s Languages. Language, Documentation & Conservation, Vol.
 4: 97-151 - ILD

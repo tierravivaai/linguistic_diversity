@@ -2,6 +2,45 @@
 
 All notable changes to this project are documented here.
 
+## [2026-10-13] — Spoken L1 filtering, extinct exclusion, coordinate validation, map improvements
+
+### Changed
+
+- **`scripts/create_language_map_endangerment.py`** — Major filtering and visual updates:
+  - **Spoken L1 filter:** Languages are now filtered to Glottolog's "spoken L1 language" classification, matching the count of 7,674 reported on the [Glottolog 5.3 website](https://glottolog.org/glottolog/glottologinformation). This excludes sign languages (227), unclassifiable (128), pidgins (87), unattested (68), artificial languages (31), speech registers (19), mixed languages (4), and bookkeeping entries (380) — all of which sit under non-genealogical trees in the Glottolog classification.
+  - **Extinct language exclusion:** 977 extinct spoken L1 languages are excluded to align with Ethnologue's count of living languages. This reduces the count from 7,674 to 6,697.
+  - **Coordinate validation:** Two-stage validation added:
+    1. Range check: lat/lon must be within ±90/±180 and not at null island (0, 0).
+    2. Spatial land check: each point is buffered by 200km in Robinson projection and checked for intersection with ecoregion polygons. This removes 8 languages on remote Pacific atolls (Nauru, Tokelau, Anuta, Kapingamarangi, Nukuoro, Luangiua, Nukumanu, Takuu) whose centroids are >200km from any land in the ecoregions dataset. The 200km buffer accommodates island languages where the centroid may fall just offshore.
+  - **Antarctica cropping:** The bottom 12% of the map is cropped to remove Antarctica, which contains no language data.
+  - **Larger markers:** Endangered language markers increased from 7.2 to 36 points² with 0.6pt white borders; "no data" markers from 3.6 to 18 points². Diversity map dots from 3.5 to 20 points² with white borders.
+  - **Legend layout fixed:** Legend panel height increased from 0.155 to 0.24 to prevent text overflow. Source attribution moved below the panel. Diversity map legend uses 5 columns.
+  - **Subtitles updated:** Both maps now specify "spoken L1 languages (non-extinct, land-validated coordinates)" with the exact count.
+  - **Source attribution** updated to reference "Glottolog 5.3" specifically.
+  - **Final count on map:** 6,688 spoken L1 languages (non-extinct, on or near land, with valid coordinates).
+
+- **`scripts/generate_endangerment_report.py`** — Matching filtering updates:
+  - Spoken L1 filter and extinct exclusion applied.
+  - Report note updated to explain the filtering criteria and reference Glottolog's spoken L1 count of 7,674.
+
+### Added
+
+- **`.gitignore`** — Excludes `glottolog/` (external repo clone), `.DS_Store`, `*.key` (presentation files), `languages_and_dialects_geo.csv`, and large generated PDFs.
+- **`NON_SPOKEN_L1_PREFIXES`** constant in both scripts — list of Glottolog non-genealogical tree glottocodes used for the spoken L1 filter.
+
+### Data
+
+- **Glottolog version:** 5.3 (released 2026-03-02), accessed 22 April 2026 via `https://github.com/glottolog/glottolog`. Latest commit in cloned repo: `3f7b10be` (2026-04-02).
+- **Language count breakdown:**
+  | Stage | Count |
+  |-------|-------|
+  | Total language-level entries | 8,618 |
+  | Spoken L1 only | 7,674 |
+  | After excluding extinct | 6,697 |
+  | With valid coordinates | 6,696 |
+  | On or near land (200km buffer) | 6,688 |
+  | Of which endangered (shifting/threatened/moribund/nearly extinct) | 4,075 (60.8% of 6,697) |
+
 ## [2025-06-05b] — Language count per CBD Party
 
 ### Added

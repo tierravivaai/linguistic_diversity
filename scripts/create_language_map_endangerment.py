@@ -281,8 +281,10 @@ def main(
     end_handles = []
     status_counts = languages["endangerment"].value_counts()
     for status in ENDANGERMENT_ORDER:
-        label = ENDANGERMENT_LABELS[status]
         count = status_counts.get(status, 0)
+        if count == 0:
+            continue
+        label = ENDANGERMENT_LABELS[status]
         end_handles.append(
             mpatches.Patch(
                 facecolor=ENDANGERMENT_COLORS[status],
@@ -503,6 +505,10 @@ if __name__ == "__main__":
     languages = pd.read_csv(csv_path, low_memory=False)
     languages = languages[languages["core.level"] == "language"].copy()
     print(f"Found {len(languages):,} language-level entries")
+
+    # Exclude extinct languages to align with Ethnologue's "living languages" count
+    languages = languages[languages["endangerment.status"] != "extinct"].copy()
+    print(f"After excluding extinct languages: {len(languages):,} languages")
 
     languages = languages.dropna(subset=["core.latitude", "core.longitude"]).copy()
     print(f"Found {len(languages):,} languages with valid coordinates")

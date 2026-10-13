@@ -272,6 +272,8 @@ def main():
 
     df = pd.read_csv(csv_path, low_memory=False)
     langs = df[df["core.level"] == "language"].copy()
+    # Exclude extinct languages to align with Ethnologue's "living languages" count
+    langs = langs[langs["endangerment.status"] != "extinct"].copy()
     langs["endangerment"] = langs["endangerment.status"].fillna("Unknown")
 
     # Explode country codes so one row per language-country pair
@@ -385,8 +387,10 @@ def main():
     lines.append(f"- **Languages with country data:** {ex['glottocode'].nunique():,}")
     lines.append(f"- **Endangered languages** (shifting, threatened, moribund, or nearly extinct): {total_endangered:,} ({total_endangered/total_unique*100:.1f}%)")
     lines.append("")
-    lines.append("Note: A language spoken in multiple countries is counted once per country. "
-                 "Therefore country-level totals sum to more than the total number of unique languages.")
+    lines.append("Note: Extinct languages are excluded from this report to align with "
+                 "Ethnologue's count of living languages. A language spoken in multiple "
+                 "countries is counted once per country. Therefore country-level totals "
+                 "sum to more than the total number of unique languages.")
     lines.append("")
 
     lines.append("## Endangerment Status by UN Region")

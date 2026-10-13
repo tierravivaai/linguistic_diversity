@@ -4,5 +4,22 @@
 .Ruserdata
 __pycache__/
 *.pyc
-.pytest_cache/
+.pytest_cache
 .Renviron
+
+# Glottolog repository clone (external dependency, not project code)
+glottolog/
+
+# macOS
+.DS_Store
+
+# Presentation files
+*.key
+
+# Data not managed by this repo
+languages_and_dialects_geo.csv
+
+# Large generated PDFs (PNGs are committed; PDFs exceed GitHub limits)
+outputs/languages_ecoregions_map.pdf
+Outputs/languages_ecoregions_map.pdf
+languages_ecoregions_map.pdf

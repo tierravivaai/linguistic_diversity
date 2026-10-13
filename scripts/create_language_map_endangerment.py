@@ -187,10 +187,12 @@ def main(
             zorder=3,
         )
 
-    print("Setting tight projected bounds...")
+    print("Setting tight projected bounds (cropping Antarctica)...")
     xmin, ymin, xmax, ymax = ecoregions_proj.total_bounds
+    # Crop the bottom ~12% to remove Antarctica, which has no language data
+    y_range = ymax - ymin
     ax.set_xlim(xmin, xmax)
-    ax.set_ylim(ymin, ymax)
+    ax.set_ylim(ymin + y_range * 0.12, ymax)
     ax.set_axis_off()
 
     # Title and subtitle
@@ -208,8 +210,8 @@ def main(
     fig.text(
         0.5,
         0.938,
-        f"{len(languages):,} languages coloured by endangerment status across "
-        f"{ecoregions['BIOME_NAME'].nunique()} biome classes",
+        f"{len(languages):,} spoken L1 languages (non-extinct, land-validated coordinates) "
+        f"coloured by endangerment status across {ecoregions['BIOME_NAME'].nunique()} biome classes",
         ha="center",
         va="top",
         fontsize=10,
@@ -406,8 +408,10 @@ def create_diversity_map(
     )
 
     xmin, ymin, xmax, ymax = ecoregions_proj.total_bounds
+    # Crop the bottom ~12% to remove Antarctica, which has no language data
+    y_range = ymax - ymin
     ax.set_xlim(xmin, xmax)
-    ax.set_ylim(ymin, ymax)
+    ax.set_ylim(ymin + y_range * 0.12, ymax)
     ax.set_axis_off()
 
     fig.text(
@@ -424,7 +428,8 @@ def create_diversity_map(
     fig.text(
         0.5,
         0.928,
-        f"{len(languages):,} languages across {ecoregions['BIOME_NAME'].nunique()} biome classes",
+        f"{len(languages):,} spoken L1 languages (non-extinct, land-validated coordinates) "
+        f"across {ecoregions['BIOME_NAME'].nunique()} biome classes",
         ha="center",
         va="top",
         fontsize=10,
@@ -533,6 +538,16 @@ if __name__ == "__main__":
     print(f"After excluding extinct languages: {len(languages):,} languages")
 
     languages = languages.dropna(subset=["core.latitude", "core.longitude"]).copy()
+
+    # Validate coordinate ranges (filter out any spurious values)
+    lat = languages["core.latitude"]
+    lon = languages["core.longitude"]
+    valid_coords = (lat >= -90) & (lat <= 90) & (lon >= -180) & (lon <= 180) & ~((lat == 0) & (lon == 0))
+    removed = len(languages) - valid_coords.sum()
+    if removed > 0:
+        print(f"Removing {removed} languages with invalid coordinates (out of range or null island)")
+        languages = languages[valid_coords].copy()
+
     print(f"Found {len(languages):,} languages with valid coordinates")
 
     languages["endangerment"] = languages["endangerment.status"].fillna("no data")
@@ -557,6 +572,29 @@ if __name__ == "__main__":
     print("Reprojecting layers to Robinson...")
     ecoregions_proj = ecoregions.to_crs(ROBINSON_CRS)
     languages_proj = languages_gdf.to_crs(ROBINSON_CRS)
+
+    # Spatial validation: check which language points fall on or near land.
+    # Language coordinates are single centroids, so island languages may have
+    # a centroid that falls just offshore. Buffer each point by 200km and check
+    # if it intersects any ecoregion polygon. The large buffer accommodates
+    # languages on small islands not represented in the ecoregions data.
+    print("Validating coordinates against land areas (ecoregion polygons + 200km buffer)...")
+    point_buffers = languages_proj.geometry.buffer(200000)  # 200km in metres
+    buffered_gdf = gpd.GeoDataFrame(geometry=point_buffers, crs=languages_proj.crs)
+    land_join = gpd.sjoin(buffered_gdf, ecoregions_proj[["geometry"]], how="left", predicate="intersects")
+    on_land = land_join["index_right"].notna()
+    # Deduplicate — sjoin may produce multiple matches per point
+    on_land = on_land.groupby(on_land.index).any()
+    ocean_count = (~on_land).sum()
+    if ocean_count > 0:
+        ocean_langs = languages_proj[~on_land]
+        print(f"Removing {ocean_count} languages with coordinates in the ocean (>200km from land):")
+        for _, r in ocean_langs.iterrows():
+            print(f"  {r['core.name']:40s} lat={r['core.latitude']:.4f} lon={r['core.longitude']:.4f}")
+        languages = languages[on_land.values].copy()
+        languages_gdf = languages_gdf[on_land.values].copy()
+        languages_proj = languages_proj[on_land.values].copy()
+    print(f"After land validation: {len(languages):,} languages with coordinates on or near land")
 
     print("Building coastline outline...")
     land_outline = ecoregions_proj[["geometry"]].dissolve()

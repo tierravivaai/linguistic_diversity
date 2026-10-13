@@ -18,6 +18,7 @@ glottolog/
 
 # Data not managed by this repo
 languages_and_dialects_geo.csv
+data-raw/Ecoregions2017
 
 # Large generated PDFs (PNGs are committed; PDFs exceed GitHub limits)
 outputs/languages_ecoregions_map.pdf

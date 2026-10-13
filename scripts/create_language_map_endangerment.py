@@ -27,6 +27,7 @@ from pathlib import Path
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.lines import Line2D
 import pandas as pd
 
 BIOME_COLORS = {
@@ -96,7 +97,7 @@ ENDANGERMENT_LABELS = {
     "moribund": "Moribund",
     "nearly extinct": "Nearly extinct",
     "extinct": "Extinct",
-    "no data": "Unknown",
+    "no data": "Endangered (level uncertain)",
 }
 
 # Glottolog non-genealogical tree prefixes — languages under these are not
@@ -302,9 +303,15 @@ def main(
             continue
         label = ENDANGERMENT_LABELS[status]
         end_handles.append(
-            mpatches.Patch(
-                facecolor=ENDANGERMENT_COLORS[status],
-                edgecolor="none",
+            Line2D(
+                [0], [0],
+                marker="o",
+                color="w",
+                markerfacecolor=ENDANGERMENT_COLORS[status],
+                markeredgecolor="white",
+                markersize=11,
+                markeredgewidth=0.8,
+                linestyle="None",
                 label=f"{label} ({count:,})",
             )
         )
@@ -319,9 +326,9 @@ def main(
         fontsize=9.4,
         borderaxespad=0.0,
         borderpad=0.2,
-        labelspacing=0.30,
-        handlelength=1.2,
-        handletextpad=0.4,
+        labelspacing=0.35,
+        handlelength=0.5,
+        handletextpad=0.6,
     )
     end_legend._legend_box.align = "left"
 

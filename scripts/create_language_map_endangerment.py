@@ -99,6 +99,20 @@ ENDANGERMENT_LABELS = {
     "no data": "Unknown",
 }
 
+# Glottolog non-genealogical tree prefixes — languages under these are not
+# spoken L1 languages and should be excluded to match Glottolog's own
+# "spoken L1 language" count (7,674 as of Glottolog 5.3).
+NON_SPOKEN_L1_PREFIXES = [
+    "sign1238",   # Sign Language
+    "uncl1493",   # Unclassifiable
+    "pidg1258",   # Pidgin
+    "unat1236",   # Unattested
+    "arti1236",   # Artificial Language
+    "spee1234",   # Speech Register
+    "mixe1287",   # Mixed Language
+    "book1242",   # Bookkeeping
+]
+
 
 def style_panel(ax):
     ax.set_xticks([])
@@ -124,7 +138,7 @@ def main(
     print("Creating figure...")
     fig = plt.figure(figsize=(20, 12), facecolor="white")
 
-    ax = fig.add_axes([0.005, 0.28, 0.99, 0.63])
+    ax = fig.add_axes([0.005, 0.30, 0.99, 0.60])
     ax.set_facecolor("#F7F8FA")
 
     print("Plotting ecoregions...")
@@ -153,15 +167,15 @@ def main(
             continue
 
         if status == "no data":
-            marker_size = 3.6
-            marker_alpha = 0.35
-            marker_edgecolor = "none"
-            marker_linewidth = 0
-        else:
-            marker_size = 7.2
-            marker_alpha = 0.75
+            marker_size = 18
+            marker_alpha = 0.45
             marker_edgecolor = "white"
-            marker_linewidth = 0.225
+            marker_linewidth = 0.4
+        else:
+            marker_size = 36
+            marker_alpha = 0.82
+            marker_edgecolor = "white"
+            marker_linewidth = 0.6
 
         subset.plot(
             ax=ax,
@@ -182,7 +196,7 @@ def main(
     # Title and subtitle
     fig.text(
         0.5,
-        0.975,
+        0.965,
         "Global Distribution of Languages Overlaid on Terrestrial Ecoregions",
         ha="center",
         va="top",
@@ -193,7 +207,7 @@ def main(
 
     fig.text(
         0.5,
-        0.948,
+        0.938,
         f"{len(languages):,} languages coloured by endangerment status across "
         f"{ecoregions['BIOME_NAME'].nunique()} biome classes",
         ha="center",
@@ -207,9 +221,9 @@ def main(
     # --------------------------
     print("Building combined legend panel...")
 
-    panel_y = 0.060
-    panel_h = 0.155
-    panel_w = 0.50
+    panel_y = 0.025
+    panel_h = 0.24
+    panel_w = 0.52
     panel_x = (1.0 - panel_w) / 2  # centered
 
     panel_ax = fig.add_axes([panel_x, panel_y, panel_w, panel_h])
@@ -311,8 +325,8 @@ def main(
 
     fig.text(
         0.5,
-        0.012,
-        "Sources: Olson et al. (2001) ecoregions; Glottolog languoid tree data.",
+        0.004,
+        "Sources: Olson et al. (2001) ecoregions; Glottolog 5.3 languoid tree data.",
         ha="center",
         va="bottom",
         fontsize=8,
@@ -353,15 +367,15 @@ def create_diversity_map(
     from matplotlib.colors import to_rgba
 
     LANG_DOT_COLOR = "#C0392B"
-    LANG_DOT_ALPHA = 0.6
-    LANG_DOT_SIZE = 3.5
-    LANG_DOT_EDGE = "none"
-    LANG_DOT_LW = 0
+    LANG_DOT_ALPHA = 0.65
+    LANG_DOT_SIZE = 20
+    LANG_DOT_EDGE = "white"
+    LANG_DOT_LW = 0.4
 
     print("Creating diversity (red-dot) figure...")
     fig = plt.figure(figsize=(20, 12), facecolor="white")
 
-    ax = fig.add_axes([0.005, 0.05, 0.99, 0.86])
+    ax = fig.add_axes([0.005, 0.12, 0.99, 0.78])
     ax.set_facecolor("#F7F8FA")
 
     ecoregions_proj.plot(
@@ -419,9 +433,9 @@ def create_diversity_map(
 
     # Biome legend panel below the map
     print("Building biome legend panel...")
-    panel_y = 0.010
-    panel_h = 0.045
-    panel_w = 0.90
+    panel_y = 0.02
+    panel_h = 0.075
+    panel_w = 0.92
     panel_x = (1.0 - panel_w) / 2
 
     panel_ax = fig.add_axes([panel_x, panel_y, panel_w, panel_h])
@@ -452,7 +466,7 @@ def create_diversity_map(
         bbox_to_anchor=(0.005, 0.95),
         bbox_transform=panel_ax.transAxes,
         frameon=False,
-        ncol=4,
+        ncol=5,
         fontsize=9,
         borderaxespad=0.0,
         borderpad=0.2,
@@ -464,8 +478,8 @@ def create_diversity_map(
 
     fig.text(
         0.5,
-        0.002,
-        "Sources: Olson et al. (2001) ecoregions; Glottolog languoid tree data.",
+        0.004,
+        "Sources: Olson et al. (2001) ecoregions; Glottolog 5.3 languoid tree data.",
         ha="center",
         va="bottom",
         fontsize=8,
@@ -505,6 +519,14 @@ if __name__ == "__main__":
     languages = pd.read_csv(csv_path, low_memory=False)
     languages = languages[languages["core.level"] == "language"].copy()
     print(f"Found {len(languages):,} language-level entries")
+
+    # Filter to spoken L1 languages only, matching Glottolog's own classification
+    # (excludes sign languages, pidgins, unattested, artificial, speech registers,
+    # mixed languages, unclassifiable, and bookkeeping entries)
+    path_str = languages["path"].astype(str)
+    is_non_spoken = path_str.apply(lambda p: any(p.startswith(prefix) for prefix in NON_SPOKEN_L1_PREFIXES))
+    languages = languages[~is_non_spoken].copy()
+    print(f"After filtering to spoken L1 languages: {len(languages):,} languages")
 
     # Exclude extinct languages to align with Ethnologue's "living languages" count
     languages = languages[languages["endangerment.status"] != "extinct"].copy()

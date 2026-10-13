@@ -262,6 +262,20 @@ COUNTRY_REGION_MAP = {
 
 ENDANGERED_STATUSES = {"shifting", "threatened", "moribund", "nearly extinct"}
 
+# Glottolog non-genealogical tree prefixes — languages under these are not
+# spoken L1 languages and should be excluded to match Glottolog's own
+# "spoken L1 language" count (7,674 as of Glottolog 5.3).
+NON_SPOKEN_L1_PREFIXES = [
+    "sign1238",   # Sign Language
+    "uncl1493",   # Unclassifiable
+    "pidg1258",   # Pidgin
+    "unat1236",   # Unattested
+    "arti1236",   # Artificial Language
+    "spee1234",   # Speech Register
+    "mixe1287",   # Mixed Language
+    "book1242",   # Bookkeeping
+]
+
 
 def main():
     project_root = Path(__file__).resolve().parent.parent
@@ -272,6 +286,10 @@ def main():
 
     df = pd.read_csv(csv_path, low_memory=False)
     langs = df[df["core.level"] == "language"].copy()
+    # Filter to spoken L1 languages only, matching Glottolog's own classification
+    path_str = langs["path"].astype(str)
+    is_non_spoken = path_str.apply(lambda p: any(p.startswith(prefix) for prefix in NON_SPOKEN_L1_PREFIXES))
+    langs = langs[~is_non_spoken].copy()
     # Exclude extinct languages to align with Ethnologue's "living languages" count
     langs = langs[langs["endangerment.status"] != "extinct"].copy()
     langs["endangerment"] = langs["endangerment.status"].fillna("Unknown")
@@ -387,8 +405,10 @@ def main():
     lines.append(f"- **Languages with country data:** {ex['glottocode'].nunique():,}")
     lines.append(f"- **Endangered languages** (shifting, threatened, moribund, or nearly extinct): {total_endangered:,} ({total_endangered/total_unique*100:.1f}%)")
     lines.append("")
-    lines.append("Note: Extinct languages are excluded from this report to align with "
-                 "Ethnologue's count of living languages. A language spoken in multiple "
+    lines.append("Note: This report covers spoken L1 languages only (excluding sign "
+                 "languages, pidgins, and other non-genealogical categories), matching "
+                 "Glottolog's own spoken L1 language count of 7,674 (Glottolog 5.3). "
+                 "Extinct languages are also excluded. A language spoken in multiple "
                  "countries is counted once per country. Therefore country-level totals "
                  "sum to more than the total number of unique languages.")
     lines.append("")
